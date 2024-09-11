@@ -71,33 +71,47 @@
     `;
     document.body.appendChild(chatContainer);
 
-    const socket = io('https://glorious-goggles-vxqv66jqvv7c7gx-3000.app.github.dev'); // Replace with your server URL
+    // Connect to the server (replace with your server URL)
+    const socket = io('https://your-server-url'); // Replace with your server URL
     const chatMessages = document.getElementById('chat-messages');
     const chatInput = document.getElementById('chat-input');
     const chatSend = document.getElementById('chat-send');
 
-    socket.on('connect', () => {
-      console.log('Connected to chat server');
-    });
-
-    socket.on('message', (data) => {
+    // Function to append messages to the chat display
+    function appendMessage(name, message) {
       const messageElement = document.createElement('div');
-      messageElement.textContent = `${data.name}: ${data.message}`;
+      messageElement.textContent = `${name}: ${message}`;
       chatMessages.appendChild(messageElement);
       chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll to the latest message
+    }
+
+    // Handle incoming messages
+    socket.on('message', (data) => {
+      appendMessage(data.name, data.message);
     });
 
-    chatSend.addEventListener('click', () => {
-      const message = chatInput.value;
+    // Handle sending messages
+    function sendMessage() {
+      const message = chatInput.value.trim();
       if (message) {
+        // Display the message immediately on the client's chat
+        appendMessage('You', message);
+
+        // Send the message to the server
         socket.emit('message', { message });
+        
+        // Clear the input field
         chatInput.value = '';
       }
-    });
+    }
 
+    // Send message on button click
+    chatSend.addEventListener('click', sendMessage);
+
+    // Send message on pressing Enter key
     chatInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
-        chatSend.click();
+        sendMessage();
       }
     });
   }
