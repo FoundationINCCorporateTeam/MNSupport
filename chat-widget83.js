@@ -219,14 +219,14 @@
       saveMessageToLocalStorage(data.name, data.message);
     });
 
-       function appendMessage(name, message) {
+    // Append message to chat
+    function appendMessage(name, message) {
       const messageElement = document.createElement('div');
-      messageElement.className = `message-bubble ${name.toLowerCase()}`;
-      messageElement.textContent = message;
+      messageElement.className = `message ${name === 'You' ? 'user' : 'agent'}`;
+      messageElement.textContent = `${name}: ${message}`;
       chatMessages.appendChild(messageElement);
       chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll to the latest message
     }
-
 
     // Handle sending messages
     function sendMessage() {
