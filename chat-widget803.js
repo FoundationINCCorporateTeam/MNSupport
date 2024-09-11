@@ -4,22 +4,23 @@
     const style = document.createElement('style');
     style.innerHTML = `
       #chat-container {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        width: 300px;
-        height: 400px;
-        background-color: white;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        display: flex;
-        flex-direction: column;
-        font-family: Arial, sans-serif;
-        z-index: 10000;
-        transform: translateY(100%);
-        transition: transform 0.3s ease;
-      }
+  position: fixed;
+  bottom: 30px; /* Adjust this value to raise or lower the chat container */
+  right: 20px;
+  width: 300px;
+  height: 400px;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  font-family: Arial, sans-serif;
+  z-index: 10000;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+}
+
       #chat-container.show {
         transform: translateY(0);
       }
@@ -74,6 +75,7 @@
         gap: 10px;
         transition: opacity 0.5s ease;
         cursor: pointer;
+        color: black;
       }
       #callout-dismiss {
         background: none;
