@@ -1,4 +1,3 @@
-// chat-widget.js
 (function () {
   function initializeChat() {
     // Inject CSS styles
@@ -18,8 +17,8 @@
         flex-direction: column;
         font-family: Arial, sans-serif;
         z-index: 10000;
-        transition: transform 0.3s ease;
         transform: translateY(100%);
+        transition: transform 0.3s ease;
       }
       #chat-container.show {
         transform: translateY(0);
@@ -41,7 +40,6 @@
         display: flex;
         flex-direction: column;
         gap: 10px;
-        transition: opacity 0.3s ease;
       }
       #chat-input-container {
         display: flex;
@@ -61,6 +59,40 @@
         padding: 10px;
         cursor: pointer;
         border-bottom-right-radius: 8px;
+      }
+      #open-chat-button {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 15px;
+        border-radius: 50%;
+        font-size: 18px;
+        cursor: pointer;
+        z-index: 10001;
+      }
+      #callout {
+        position: fixed;
+        bottom: 100px;
+        right: 20px;
+        background-color: #f1f0f0;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: opacity 0.5s ease;
+      }
+      #callout-dismiss {
+        background: none;
+        border: none;
+        font-size: 16px;
+        cursor: pointer;
+        color: #007bff;
       }
       .message {
         padding: 10px;
@@ -83,27 +115,6 @@
         align-self: flex-start;
         border-top-right-radius: 0;
       }
-      .callout {
-        position: fixed;
-        bottom: 100px;
-        right: 20px;
-        background-color: #007bff;
-        color: white;
-        padding: 15px;
-        border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        z-index: 10001;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-      .callout button {
-        background-color: transparent;
-        border: none;
-        color: white;
-        font-size: 16px;
-        cursor: pointer;
-      }
       @keyframes fadeIn {
         from { opacity: 0; }
         to { opacity: 1; }
@@ -117,55 +128,94 @@
 
     chatContainer.innerHTML = `
       <div id="chat-header">Live Chat</div>
-      <div id="chat-messages" class="hidden"></div>
-      <div id="chat-input-container" class="hidden">
+      <div id="chat-messages"></div>
+      <div id="chat-input-container">
         <input type="text" id="chat-input" placeholder="Type a message..." />
         <button id="chat-send">Send</button>
       </div>
     `;
     document.body.appendChild(chatContainer);
 
+    // Create open chat button
+    const openChatButton = document.createElement('button');
+    openChatButton.id = 'open-chat-button';
+    openChatButton.textContent = 'Chat';
+    document.body.appendChild(openChatButton);
+
     // Create callout element
     const callout = document.createElement('div');
-    callout.className = 'callout';
+    callout.id = 'callout';
     callout.innerHTML = `
-      <span>Welcome! Click here to start a chat.</span>
+      <span>Need help? Click here to chat!</span>
       <button id="callout-dismiss">X</button>
     `;
     document.body.appendChild(callout);
 
-    // Connect to the server (replace with your server URL)
+    // Connect to the server
     const socket = io('https://glorious-goggles-vxqv66jqvv7c7gx-3000.app.github.dev/', { transports: ['websocket'] });
 
     const chatMessages = document.getElementById('chat-messages');
     const chatInput = document.getElementById('chat-input');
     const chatSend = document.getElementById('chat-send');
     const chatHeader = document.getElementById('chat-header');
-    const chatInputContainer = document.getElementById('chat-input-container');
-    const calloutDismiss = document.getElementById('callout-dismiss');
+
+    let chatVisible = false;
 
     // Show chat container
     function showChat() {
       chatContainer.classList.add('show');
-      chatMessages.classList.remove('hidden');
-      chatInputContainer.classList.remove('hidden');
+      chatMessages.style.display = 'flex';
+      chatInputContainer.style.display = 'flex';
+      openChatButton.style.display = 'none';
       callout.style.display = 'none';
+      chatVisible = true;
+    }
+
+    // Hide chat container
+    function hideChat() {
+      chatContainer.classList.remove('show');
+      openChatButton.style.display = 'flex';
+      chatVisible = false;
+      showCallout();
+    }
+
+    // Show callout message
+    function showCallout() {
+      callout.style.opacity = 1;
+      setTimeout(() => {
+        callout.style.opacity = 0;
+      }, 10000); // Show for 10 seconds
     }
 
     // Handle callout dismiss
-    calloutDismiss.addEventListener('click', () => {
-      callout.style.display = 'none';
-      showChat();
+    document.getElementById('callout-dismiss').addEventListener('click', () => {
+      callout.style.opacity = 0;
+      if (!chatVisible) {
+        openChatButton.style.display = 'flex';
+      }
     });
 
     // Toggle chat container visibility
     chatHeader.addEventListener('click', () => {
-      chatContainer.classList.toggle('show');
+      if (chatVisible) {
+        hideChat();
+      } else {
+        showChat();
+      }
+    });
+
+    // Open chat button click event
+    openChatButton.addEventListener('click', () => {
+      showChat();
     });
 
     // Handle incoming messages
     socket.on('message', (data) => {
-      appendMessage(data.name, data.message);
+      if (data.name === 'User') {
+        appendMessage('You', data.message);
+      } else if (data.name === 'Agent') {
+        appendMessage('Agent', data.message);
+      }
       saveMessageToLocalStorage(data.name, data.message);
     });
 
@@ -186,7 +236,7 @@
         appendMessage('You', message);
 
         // Send the message to the server
-        socket.emit('message', { message });
+        socket.emit('message', { message, from: 'user' });
 
         // Clear the input field
         chatInput.value = '';
@@ -210,15 +260,15 @@
       localStorage.setItem('messages', JSON.stringify(messages));
     }
 
-    // Load and display previous messages from localStorage
+    // Load messages from localStorage
     function loadMessagesFromLocalStorage() {
       const messages = JSON.parse(localStorage.getItem('messages')) || [];
-      messages.forEach(msg => {
+      messages.forEach((msg) => {
         appendMessage(msg.name, msg.message);
       });
     }
 
-    // Load previous messages on initialization
+    // Load messages on initialization
     loadMessagesFromLocalStorage();
   }
 
