@@ -72,7 +72,7 @@
     document.body.appendChild(chatContainer);
 
     // Connect to the server (replace with your server URL)
-    const socket = io('https://your-server-url'); // Replace with your server URL
+    const socket = io('https://glorious-goggles-vxqv66jqvv7c7gx-3000.app.github.dev/'); // Replace with your server URL
     const chatMessages = document.getElementById('chat-messages');
     const chatInput = document.getElementById('chat-input');
     const chatSend = document.getElementById('chat-send');
