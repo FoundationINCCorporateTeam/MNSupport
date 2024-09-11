@@ -1,5 +1,5 @@
 // chat-widget.js
-(function() {
+(function () {
   function initializeChat() {
     // Inject CSS styles
     const style = document.createElement('style');
@@ -32,6 +32,8 @@
         padding: 10px;
         overflow-y: auto;
         border-top: 1px solid #ddd;
+        display: flex;
+        flex-direction: column;
       }
       #chat-input-container {
         display: flex;
@@ -42,6 +44,7 @@
         padding: 10px;
         border: none;
         border-bottom-left-radius: 8px;
+        outline: none;
       }
       #chat-send {
         background-color: #007bff;
@@ -68,12 +71,6 @@
     `;
     document.body.appendChild(chatContainer);
 
-    // Ensure Socket.io is available
-    if (typeof io === 'undefined') {
-      console.error('Socket.io not loaded.');
-      return;
-    }
-
     const socket = io('https://glorious-goggles-vxqv66jqvv7c7gx-3000.app.github.dev'); // Replace with your server URL
     const chatMessages = document.getElementById('chat-messages');
     const chatInput = document.getElementById('chat-input');
@@ -87,7 +84,7 @@
       const messageElement = document.createElement('div');
       messageElement.textContent = `${data.name}: ${data.message}`;
       chatMessages.appendChild(messageElement);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
+      chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll to the latest message
     });
 
     chatSend.addEventListener('click', () => {
