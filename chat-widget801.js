@@ -137,10 +137,10 @@
     document.body.appendChild(chatContainer);
 
     // Create open chat button
-    const openChatButton = document.createElement('button');
+   /* const openChatButton = document.createElement('button');
     openChatButton.id = 'open-chat-button';
     openChatButton.textContent = 'Chat';
-    document.body.appendChild(openChatButton);
+    document.body.appendChild(openChatButton);*/
 
     // Create callout element
     const callout = document.createElement('div');
