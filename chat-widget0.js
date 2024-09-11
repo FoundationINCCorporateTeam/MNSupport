@@ -1,4 +1,3 @@
-// chat-widget.js
 (function () {
   function initializeChat() {
     // Inject CSS styles
@@ -18,7 +17,11 @@
         flex-direction: column;
         font-family: Arial, sans-serif;
         z-index: 10000;
-        display: none; /* Hidden by default */
+        transform: translateY(100%);
+        transition: transform 0.3s ease;
+      }
+      #chat-container.show {
+        transform: translateY(0);
       }
       #chat-header {
         background-color: #007bff;
@@ -27,6 +30,7 @@
         text-align: center;
         border-top-left-radius: 8px;
         border-top-right-radius: 8px;
+        cursor: pointer;
       }
       #chat-messages {
         flex: 1;
@@ -35,7 +39,7 @@
         border-top: 1px solid #ddd;
         display: flex;
         flex-direction: column;
-        color: black;
+        gap: 10px;
       }
       #chat-input-container {
         display: flex;
@@ -56,59 +60,64 @@
         cursor: pointer;
         border-bottom-right-radius: 8px;
       }
-      .message-bubble {
-        padding: 10px;
-        margin: 5px;
-        border-radius: 15px;
-        max-width: 70%;
-        word-wrap: break-word;
-      }
-      .message-bubble.user {
-        background-color: #dcf8c6;
-        align-self: flex-end;
-      }
-      .message-bubble.agent {
-        background-color: #ffffff;
-        border: 1px solid #ddd;
-        align-self: flex-start;
-      }
-      #chat-toggle {
+      #open-chat-button {
         position: fixed;
         bottom: 20px;
         right: 20px;
         background-color: #007bff;
         color: white;
-        padding: 10px;
+        border: none;
+        padding: 15px;
         border-radius: 50%;
+        font-size: 18px;
         cursor: pointer;
         z-index: 10001;
       }
       #callout {
         position: fixed;
-        bottom: 80px;
+        bottom: 100px;
         right: 20px;
-        background-color: #007bff;
-        color: white;
-        padding: 10px;
+        background-color: #f1f0f0;
+        border: 1px solid #ddd;
         border-radius: 8px;
+        padding: 10px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         display: flex;
         align-items: center;
-        cursor: pointer;
-        animation: callout-animation 10s infinite;
+        gap: 10px;
+        transition: opacity 0.5s ease;
       }
-      #callout .close-btn {
-        margin-left: 10px;
+      #callout-dismiss {
         background: none;
         border: none;
-        color: white;
         font-size: 16px;
         cursor: pointer;
+        color: #007bff;
       }
-      @keyframes callout-animation {
-        0% { transform: translateY(0); }
-        50% { transform: translateY(-20px); }
-        100% { transform: translateY(0); }
+      .message {
+        padding: 10px;
+        border-radius: 12px;
+        max-width: 80%;
+        display: inline-block;
+        word-wrap: break-word;
+        position: relative;
+        animation: fadeIn 0.3s ease;
+      }
+      .message.user {
+        background-color: #007bff;
+        color: white;
+        align-self: flex-end;
+        border-top-left-radius: 0;
+      }
+      .message.agent {
+        background-color: #f1f0f0;
+        color: black;
+        align-self: flex-start;
+        border-top-right-radius: 0;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
       }
     `;
     document.head.appendChild(style);
@@ -127,42 +136,97 @@
     `;
     document.body.appendChild(chatContainer);
 
-    const chatToggle = document.createElement('div');
-    chatToggle.id = 'chat-toggle';
-    chatToggle.textContent = 'Chat';
-    document.body.appendChild(chatToggle);
+    // Create open chat button
+    const openChatButton = document.createElement('button');
+    openChatButton.id = 'open-chat-button';
+    openChatButton.textContent = 'Chat';
+    document.body.appendChild(openChatButton);
 
+    // Create callout element
     const callout = document.createElement('div');
     callout.id = 'callout';
     callout.innerHTML = `
-      <span>Chat with us!</span>
-      <button class="close-btn">×</button>
+      <span>Need help? Click here to chat!</span>
+      <button id="callout-dismiss">X</button>
     `;
     document.body.appendChild(callout);
 
-    // Connect to the server (replace with your server URL)
-    const socket = io('https://glorious-goggles-vxqv66jqvv7c7gx-3000.app.github.dev'); // Replace with your server URL
+    // Connect to the server
+    const socket = io('https://glorious-goggles-vxqv66jqvv7c7gx-3000.app.github.dev/', { transports: ['websocket'] });
+
     const chatMessages = document.getElementById('chat-messages');
     const chatInput = document.getElementById('chat-input');
     const chatSend = document.getElementById('chat-send');
-    const chatContainer = document.getElementById('chat-container');
-    const chatToggle = document.getElementById('chat-toggle');
-    const callout = document.getElementById('callout');
-    const closeCallout = callout.querySelector('.close-btn');
+    const chatHeader = document.getElementById('chat-header');
 
-    // Function to append messages to the chat display
-    function appendMessage(name, message) {
-      const messageElement = document.createElement('div');
-      messageElement.className = `message-bubble ${name.toLowerCase()}`;
-      messageElement.textContent = `${message}`;
-      chatMessages.appendChild(messageElement);
-      chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll to the latest message
+    let chatVisible = false;
+
+    // Show chat container
+    function showChat() {
+      chatContainer.classList.add('show');
+      chatMessages.style.display = 'flex';
+      chatInputContainer.style.display = 'flex';
+      openChatButton.style.display = 'none';
+      callout.style.display = 'none';
+      chatVisible = true;
     }
+
+    // Hide chat container
+    function hideChat() {
+      chatContainer.classList.remove('show');
+      openChatButton.style.display = 'flex';
+      chatVisible = false;
+      showCallout();
+    }
+
+    // Show callout message
+    function showCallout() {
+      callout.style.opacity = 1;
+      setTimeout(() => {
+        callout.style.opacity = 0;
+      }, 10000); // Show for 10 seconds
+    }
+
+    // Handle callout dismiss
+    document.getElementById('callout-dismiss').addEventListener('click', () => {
+      callout.style.opacity = 0;
+      if (!chatVisible) {
+        openChatButton.style.display = 'flex';
+      }
+    });
+
+    // Toggle chat container visibility
+    chatHeader.addEventListener('click', () => {
+      if (chatVisible) {
+        hideChat();
+      } else {
+        showChat();
+      }
+    });
+
+    // Open chat button click event
+    openChatButton.addEventListener('click', () => {
+      showChat();
+    });
 
     // Handle incoming messages
     socket.on('message', (data) => {
-      appendMessage(data.name, data.message);
+      if (data.name === 'User') {
+        appendMessage('You', data.message);
+      } else if (data.name === 'Agent') {
+        appendMessage('Agent', data.message);
+      }
+      saveMessageToLocalStorage(data.name, data.message);
     });
+
+    // Append message to chat
+    function appendMessage(name, message) {
+      const messageElement = document.createElement('div');
+      messageElement.className = `message ${name === 'You' ? 'user'}`;
+      messageElement.textContent = `${name}: ${message}`;
+      chatMessages.appendChild(messageElement);
+      chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll to the latest message
+    }
 
     // Handle sending messages
     function sendMessage() {
@@ -189,18 +253,23 @@
       }
     });
 
-    // Toggle chat visibility
-    chatToggle.addEventListener('click', () => {
-      chatContainer.style.display = chatContainer.style.display === 'none' ? 'flex' : 'none';
-    });
+    // Save message to localStorage
+    function saveMessageToLocalStorage(name, message) {
+      const messages = JSON.parse(localStorage.getItem('messages')) || [];
+      messages.push({ name, message, timestamp: new Date().toISOString() });
+      localStorage.setItem('messages', JSON.stringify(messages));
+    }
 
-    // Close callout
-    closeCallout.addEventListener('click', () => {
-      callout.style.display = 'none';
-    });
+    // Load messages from localStorage
+    function loadMessagesFromLocalStorage() {
+      const messages = JSON.parse(localStorage.getItem('messages')) || [];
+      messages.forEach((msg) => {
+        appendMessage(msg.name, msg.message);
+      });
+    }
 
-    // Hide chat initially
-    chatContainer.style.display = 'none';
+    // Load messages on initialization
+    loadMessagesFromLocalStorage();
   }
 
   // Wait for DOM to load before initializing the chat
