@@ -60,19 +60,6 @@
         cursor: pointer;
         border-bottom-right-radius: 8px;
       }
-      #open-chat-button {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background-color: #007bff;
-        color: white;
-        border: none;
-        padding: 15px;
-        border-radius: 50%;
-        font-size: 18px;
-        cursor: pointer;
-        z-index: 10001;
-      }
       #callout {
         position: fixed;
         bottom: 100px;
@@ -86,6 +73,7 @@
         align-items: center;
         gap: 10px;
         transition: opacity 0.5s ease;
+        cursor: pointer;
       }
       #callout-dismiss {
         background: none;
@@ -136,12 +124,6 @@
     `;
     document.body.appendChild(chatContainer);
 
-    // Create open chat button
-   /* const openChatButton = document.createElement('button');
-    openChatButton.id = 'open-chat-button';
-    openChatButton.textContent = 'Chat';
-    document.body.appendChild(openChatButton);*/
-
     // Create callout element
     const callout = document.createElement('div');
     callout.id = 'callout';
@@ -158,15 +140,13 @@
     const chatInput = document.getElementById('chat-input');
     const chatSend = document.getElementById('chat-send');
     const chatHeader = document.getElementById('chat-header');
+    const calloutDismiss = document.getElementById('callout-dismiss');
 
     let chatVisible = false;
 
     // Show chat container
     function showChat() {
       chatContainer.classList.add('show');
-      chatMessages.style.display = 'flex';
-      chatInputContainer.style.display = 'flex';
-      openChatButton.style.display = 'none';
       callout.style.display = 'none';
       chatVisible = true;
     }
@@ -174,28 +154,24 @@
     // Hide chat container
     function hideChat() {
       chatContainer.classList.remove('show');
-      openChatButton.style.display = 'flex';
-      chatVisible = false;
-      showCallout();
-    }
-
-    // Show callout message
-    function showCallout() {
-      callout.style.opacity = 1;
-      setTimeout(() => {
-        callout.style.opacity = 0;
-      }, 10000); // Show for 10 seconds
-    }
-
-    // Handle callout dismiss
-    document.getElementById('callout-dismiss').addEventListener('click', () => {
-      callout.style.opacity = 0;
       if (!chatVisible) {
-        openChatButton.style.display = 'flex';
+        callout.style.opacity = 1;
       }
+      chatVisible = false;
+    }
+
+    // Handle callout click
+    callout.addEventListener('click', () => {
+      showChat();
     });
 
-    // Toggle chat container visibility
+    // Handle callout dismiss
+    calloutDismiss.addEventListener('click', () => {
+      callout.style.opacity = 0;
+      hideChat();
+    });
+
+    // Toggle chat container visibility by clicking header
     chatHeader.addEventListener('click', () => {
       if (chatVisible) {
         hideChat();
@@ -204,18 +180,9 @@
       }
     });
 
-    // Open chat button click event
-    openChatButton.addEventListener('click', () => {
-      showChat();
-    });
-
     // Handle incoming messages
     socket.on('message', (data) => {
-      if (data.name === 'User') {
-        appendMessage('You', data.message);
-      } else if (data.name === 'Agent') {
-        appendMessage('Agent', data.message);
-      }
+      appendMessage(data.name, data.message);
       saveMessageToLocalStorage(data.name, data.message);
     });
 
