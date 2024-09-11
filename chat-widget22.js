@@ -34,6 +34,7 @@
         border-top: 1px solid #ddd;
         display: flex;
         flex-direction: column;
+        color: black;
       }
       #chat-input-container {
         display: flex;
