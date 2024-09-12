@@ -38,17 +38,17 @@
         flex: 1;
         padding: 15px;
         overflow-y: auto;
-        display: none;
+        display: flex;
         flex-direction: column;
         gap: 10px;
         background-color: #f9f9f9;
         border-top: 1px solid #ddd;
       }
       #chat-input-container {
-        display: none;
         border-top: 1px solid #ddd;
         padding: 10px;
         background-color: #f4f4f4;
+        display: flex;
         align-items: center;
       }
       #chat-input {
@@ -211,7 +211,7 @@
         <button type="submit">Start Chat</button>
       </form>
       <div id="chat-messages"></div>
-      <div id="chat-input-container">
+      <div id="chat-input-container" style="display: none;">
         <input type="text" id="chat-input" placeholder="Type a message..." />
         <button id="chat-send">➤</button>
       </div>
@@ -226,8 +226,13 @@
     `;
     document.body.appendChild(callout);
 
-    // Connect to the server
-    const socket = io('https://glorious-goggles-vxqv66jqvv7c7gx-3000.app.github.dev/', { transports: ['websocket'] });
+    // Initialize Supabase
+    const supabaseUrl = 'YOUR_SUPABASE_URL';
+    const supabaseKey = 'YOUR_SUPABASE_KEY';
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    // Connect to Socket.io
+    const socket = io('https://your-socket-url', { transports: ['websocket'] });
 
     const chatMessages = document.getElementById('chat-messages');
     const chatInput = document.getElementById('chat-input');
@@ -236,6 +241,7 @@
     const welcomeScreen = document.getElementById('welcome-screen');
     const preChatForm = document.getElementById('pre-chat-form');
     const startChatButton = document.getElementById('start-chat');
+    const chatInputContainer = document.getElementById('chat-input-container');
 
     let chatVisible = false;
     let userName = '';
@@ -284,13 +290,16 @@
     });
 
     // Pre-chat form submission
-    preChatForm.addEventListener('submit', (e) => {
+    preChatForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       userName = document.getElementById('user-name').value;
       userEmail = document.getElementById('user-email').value;
 
       // Send user details to server to start a private chat
       socket.emit('start_chat', { name: userName, email: userEmail });
+
+      // Save user details in Supabase
+      await supabase.from('chats').insert([{ name: userName, email: userEmail }]);
 
       preChatForm.style.display = 'none';
       chatMessages.style.display = 'flex';
