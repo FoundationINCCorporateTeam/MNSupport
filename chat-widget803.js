@@ -1,97 +1,120 @@
+<!-- Chat Widget HTML and CSS/JS -->
 (function () {
   function initializeChat() {
     // Inject CSS styles
     const style = document.createElement('style');
     style.innerHTML = `
       #chat-container {
-  position: fixed;
-  bottom: 30px; /* Adjust this value to raise or lower the chat container */
-  right: 20px;
-  width: 300px;
-  height: 400px;
-  background-color: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: column;
-  font-family: Arial, sans-serif;
-  z-index: 10000;
-  transform: translateY(100%);
-  transition: transform 0.3s ease;
-}
-
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 400px; /* Increased width */
+        height: 500px; /* Increased height */
+        background-color: #fff;
+        border: 2px solid #007bff;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        font-family: Arial, sans-serif;
+        z-index: 10000;
+        transform: translateY(100%);
+        transition: transform 0.3s ease, bottom 0.3s ease; /* Smooth transition */
+      }
       #chat-container.show {
         transform: translateY(0);
       }
       #chat-header {
         background-color: #007bff;
         color: white;
-        padding: 10px;
+        padding: 15px;
         text-align: center;
-        border-top-left-radius: 8px;
-        border-top-right-radius: 8px;
+        border-top-left-radius: 16px;
+        border-top-right-radius: 16px;
         cursor: pointer;
+        font-size: 18px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      #chat-header span {
+        flex: 1;
+        text-align: center;
+      }
+      #chat-close {
+        font-size: 16px;
+        cursor: pointer;
+        padding: 0 10px;
       }
       #chat-messages {
         flex: 1;
-        padding: 10px;
+        padding: 15px;
         overflow-y: auto;
-        border-top: 1px solid #ddd;
         display: flex;
         flex-direction: column;
         gap: 10px;
+        background-color: #f9f9f9;
+        border-top: 1px solid #ddd;
       }
       #chat-input-container {
         display: flex;
         border-top: 1px solid #ddd;
+        padding: 10px;
+        background-color: #f4f4f4;
+        align-items: center;
       }
       #chat-input {
         flex: 1;
         padding: 10px;
-        border: none;
-        border-bottom-left-radius: 8px;
+        border: 1px solid #ddd;
+        border-radius: 20px;
         outline: none;
+        margin-right: 10px;
+        font-size: 14px;
       }
       #chat-send {
         background-color: #007bff;
         color: white;
         border: none;
-        padding: 10px;
+        padding: 10px 15px;
         cursor: pointer;
-        border-bottom-right-radius: 8px;
+        border-radius: 50%;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
       #callout {
         position: fixed;
         bottom: 100px;
         right: 20px;
-        background-color: #f1f0f0;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        padding: 10px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        background-color: #007bff;
+        color: white;
+        border-radius: 12px;
+        padding: 10px 15px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         display: flex;
         align-items: center;
         gap: 10px;
-        transition: opacity 0.5s ease;
-        cursor: pointer;
-        color: black;
+        transition: opacity 0.5s ease, transform 0.5s ease; /* Add animation for callout */
       }
       #callout-dismiss {
         background: none;
         border: none;
         font-size: 16px;
         cursor: pointer;
-        color: #007bff;
+        color: white;
       }
       .message {
-        padding: 10px;
-        border-radius: 12px;
-        max-width: 80%;
+        padding: 10px 15px;
+        border-radius: 20px;
+        max-width: 75%;
         display: inline-block;
         word-wrap: break-word;
         position: relative;
         animation: fadeIn 0.3s ease;
+        font-size: 14px;
       }
       .message.user {
         background-color: #007bff;
@@ -117,11 +140,14 @@
     chatContainer.id = 'chat-container';
 
     chatContainer.innerHTML = `
-      <div id="chat-header">Live Chat</div>
+      <div id="chat-header">
+        <span>Live Chat</span>
+        <button id="chat-close">✕</button>
+      </div>
       <div id="chat-messages"></div>
       <div id="chat-input-container">
         <input type="text" id="chat-input" placeholder="Type a message..." />
-        <button id="chat-send">Send</button>
+        <button id="chat-send">➤</button>
       </div>
     `;
     document.body.appendChild(chatContainer);
@@ -142,38 +168,43 @@
     const chatInput = document.getElementById('chat-input');
     const chatSend = document.getElementById('chat-send');
     const chatHeader = document.getElementById('chat-header');
-    const calloutDismiss = document.getElementById('callout-dismiss');
+    const chatClose = document.getElementById('chat-close');
 
     let chatVisible = false;
 
     // Show chat container
     function showChat() {
       chatContainer.classList.add('show');
-      callout.style.display = 'none';
       chatVisible = true;
+      callout.style.display = 'none';
     }
 
     // Hide chat container
     function hideChat() {
       chatContainer.classList.remove('show');
-      if (!chatVisible) {
-        callout.style.opacity = 1;
-      }
       chatVisible = false;
+      showCallout();
     }
 
-    // Handle callout click
-    callout.addEventListener('click', () => {
-      showChat();
-    });
+    // Show callout message
+    function showCallout() {
+      callout.style.opacity = 1;
+      callout.style.transform = 'translateY(0)';
+      setTimeout(() => {
+        callout.style.opacity = 0;
+        callout.style.transform = 'translateY(20px)';
+      }, 10000); // Show for 10 seconds
+    }
 
     // Handle callout dismiss
-    calloutDismiss.addEventListener('click', () => {
+    document.getElementById('callout-dismiss').addEventListener('click', () => {
       callout.style.opacity = 0;
-      hideChat();
+      if (!chatVisible) {
+        chatVisible = false;
+      }
     });
 
-    // Toggle chat container visibility by clicking header
+    // Toggle chat container visibility
     chatHeader.addEventListener('click', () => {
       if (chatVisible) {
         hideChat();
@@ -182,9 +213,14 @@
       }
     });
 
+    // Close chat on button click
+    chatClose.addEventListener('click', () => {
+      hideChat();
+    });
+
     // Handle incoming messages
     socket.on('message', (data) => {
-      appendMessage(data.name, data.message);
+      appendMessage(data.name === 'User' ? 'You' : 'Agent', data.message);
       saveMessageToLocalStorage(data.name, data.message);
     });
 
@@ -192,7 +228,7 @@
     function appendMessage(name, message) {
       const messageElement = document.createElement('div');
       messageElement.className = `message ${name === 'You' ? 'user' : 'agent'}`;
-      messageElement.textContent = `${name}: ${message}`;
+      messageElement.textContent = message;
       chatMessages.appendChild(messageElement);
       chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll to the latest message
     }
@@ -201,14 +237,9 @@
     function sendMessage() {
       const message = chatInput.value.trim();
       if (message) {
-        // Display the message immediately on the client's chat
-        appendMessage('You', message);
-
-        // Send the message to the server
-        socket.emit('message', { message, from: 'user' });
-
-        // Clear the input field
-        chatInput.value = '';
+        appendMessage('You', message); // Display the message immediately on the client's chat
+        socket.emit('message', { message, from: 'user' }); // Send the message to the server
+        chatInput.value = ''; // Clear the input field
       }
     }
 
