@@ -305,17 +305,17 @@ preChatForm.addEventListener('submit', async (e) => {
   userName = document.getElementById('user-name').value;
   userEmail = document.getElementById('user-email').value;
 
-  // Perform upsert to create or update the user
-  const { data: upsertData, error: upsertError } = await supabase
+  // Perform insert to create a new user
+  const { data: insertData, error: insertError } = await supabase
     .from('chatusers')
-    .upsert([{ name: userName, email: userEmail }], { returning: 'minimal' });
+    .insert([{ name: userName, email: userEmail }], { returning: 'minimal' });
 
-  if (upsertError) {
-    console.error('Error upserting user:', upsertError);
+  if (insertError && insertError.code !== '23505') { // '23505' is the PostgreSQL code for unique violation
+    console.error('Error inserting user:', insertError);
     return;
   }
 
-  // After upserting, fetch the user to get their ID
+  // After inserting, fetch the user to get their ID
   const { data: fetchedUsers, error: fetchError } = await supabase
     .from('chatusers')
     .select('id')
@@ -341,6 +341,7 @@ preChatForm.addEventListener('submit', async (e) => {
   chatMessages.style.display = 'flex';
   chatInputContainer.style.display = 'flex';
 });
+
      // Handle incoming messages
       socket.on('message', (data) => {
         if (data.name !== userName) { // Show only agent messages for user
