@@ -1,8 +1,7 @@
 (function () {
-  // Function to load Supabase CDN
   function loadSupabaseCDN(callback) {
     const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js';
+    script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js';
     script.onload = callback;
     document.head.appendChild(script);
   }
@@ -13,7 +12,7 @@
     style.innerHTML = `
       #chat-container {
         position: fixed;
-        bottom: 50px;
+        bottom: 0;
         right: 20px;
         width: 400px;
         height: 500px;
@@ -26,7 +25,7 @@
         font-family: Arial, sans-serif;
         z-index: 10000;
         transform: translateY(100%);
-        transition: transform 0.3s ease, bottom 0.3s ease;
+        transition: transform 0.3s ease;
       }
       #chat-container.show {
         transform: translateY(0);
@@ -204,9 +203,9 @@
     document.head.appendChild(style);
 
     // Create chat elements
- // Create chat elements
     const chatContainer = document.createElement('div');
     chatContainer.id = 'chat-container';
+
     chatContainer.innerHTML = `
       <div id="chat-header">Live Chat</div>
       <div id="welcome-screen">
@@ -229,7 +228,9 @@
     // Create callout element
     const callout = document.createElement('div');
     callout.id = 'callout';
-    callout.innerHTML = `<span>Need help? Click here to chat!</span>`;
+    callout.innerHTML = `
+      <span>Need help? Click here to chat!</span>
+    `;
     document.body.appendChild(callout);
 
     // Initialize Supabase after the CDN is loaded
