@@ -5,10 +5,10 @@
     style.innerHTML = `
       #chat-container {
         position: fixed;
-        bottom: 50px; /* Raised the chat container */
+        bottom: 50px;
         right: 20px;
-        width: 400px; /* Increased width */
-        height: 500px; /* Increased height */
+        width: 400px;
+        height: 500px;
         background-color: #fff;
         border: 2px solid #007bff;
         border-radius: 16px;
@@ -18,7 +18,7 @@
         font-family: Arial, sans-serif;
         z-index: 10000;
         transform: translateY(100%);
-        transition: transform 0.3s ease, bottom 0.3s ease; /* Smooth transition */
+        transition: transform 0.3s ease, bottom 0.3s ease;
       }
       #chat-container.show {
         transform: translateY(0);
@@ -33,34 +33,19 @@
         cursor: pointer;
         font-size: 18px;
         font-weight: bold;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-      }
-      #chat-header span {
-        flex: 1;
-        text-align: center;
-      }
-      #chat-close {
-        font-size: 16px;
-        cursor: pointer;
-        padding: 0 10px;
-        background: none;
-        border: none;
-        color: white;
       }
       #chat-messages {
         flex: 1;
         padding: 15px;
         overflow-y: auto;
-        display: flex;
+        display: none;
         flex-direction: column;
         gap: 10px;
         background-color: #f9f9f9;
         border-top: 1px solid #ddd;
       }
       #chat-input-container {
-        display: flex;
+        display: none;
         border-top: 1px solid #ddd;
         padding: 10px;
         background-color: #f4f4f4;
@@ -89,7 +74,7 @@
       }
       #callout {
         position: fixed;
-        bottom: 150px; /* Position above the chat widget */
+        bottom: 150px;
         right: 20px;
         background-color: #007bff;
         color: white;
@@ -99,7 +84,7 @@
         display: flex;
         align-items: center;
         gap: 10px;
-        transition: opacity 0.5s ease, transform 0.5s ease; /* Add animation for callout */
+        transition: opacity 0.5s ease, transform 0.5s ease;
         cursor: pointer;
       }
       #callout::after {
@@ -111,13 +96,6 @@
         height: 0;
         border: 10px solid transparent;
         border-top-color: #007bff;
-      }
-      #callout-dismiss {
-        background: none;
-        border: none;
-        font-size: 16px;
-        cursor: pointer;
-        color: white;
       }
       .message {
         padding: 10px 15px;
@@ -161,6 +139,55 @@
         border: 10px solid transparent;
         border-right-color: #f1f0f0;
       }
+      #pre-chat-form {
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+        flex: 1;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+      }
+      #pre-chat-form input {
+        width: 90%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 14px;
+        outline: none;
+      }
+      #pre-chat-form button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        cursor: pointer;
+        border-radius: 8px;
+        font-size: 16px;
+      }
+      #welcome-screen {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        flex: 1;
+        gap: 10px;
+      }
+      #welcome-screen h2 {
+        margin: 0;
+        font-size: 18px;
+        color: #333;
+      }
+      #welcome-screen button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        cursor: pointer;
+        border-radius: 8px;
+        font-size: 16px;
+      }
       @keyframes fadeIn {
         from { opacity: 0; }
         to { opacity: 1; }
@@ -173,10 +200,16 @@
     chatContainer.id = 'chat-container';
 
     chatContainer.innerHTML = `
-      <div id="chat-header">
-        <span>Live Chat</span>
-        <button id="chat-close">✕</button>
+      <div id="chat-header">Live Chat</div>
+      <div id="welcome-screen">
+        <h2>Welcome to our Live Chat!</h2>
+        <button id="start-chat">Start Chat</button>
       </div>
+      <form id="pre-chat-form" style="display: none;">
+        <input type="text" id="user-name" placeholder="Enter your name" required />
+        <input type="email" id="user-email" placeholder="Enter your email" required />
+        <button type="submit">Start Chat</button>
+      </form>
       <div id="chat-messages"></div>
       <div id="chat-input-container">
         <input type="text" id="chat-input" placeholder="Type a message..." />
@@ -190,7 +223,6 @@
     callout.id = 'callout';
     callout.innerHTML = `
       <span>Need help? Click here to chat!</span>
-      <button id="callout-dismiss">✕</button>
     `;
     document.body.appendChild(callout);
 
@@ -201,9 +233,13 @@
     const chatInput = document.getElementById('chat-input');
     const chatSend = document.getElementById('chat-send');
     const chatHeader = document.getElementById('chat-header');
-    const chatClose = document.getElementById('chat-close');
+    const welcomeScreen = document.getElementById('welcome-screen');
+    const preChatForm = document.getElementById('pre-chat-form');
+    const startChatButton = document.getElementById('start-chat');
 
     let chatVisible = false;
+    let userName = '';
+    let userEmail = '';
 
     // Show chat container
     function showChat() {
@@ -225,14 +261,9 @@
       callout.style.transform = 'translateY(0)';
       setTimeout(() => {
         callout.style.opacity = 0;
-        callout.style.transform = 'translateY(20px)';
+        callout.style.transform = 'translateY(10px)';
       }, 10000); // Show for 10 seconds
     }
-
-    // Handle callout dismiss
-    document.getElementById('callout-dismiss').addEventListener('click', () => {
-      callout.style.opacity = 0;
-    });
 
     // Toggle chat container visibility
     chatHeader.addEventListener('click', () => {
@@ -243,17 +274,34 @@
       }
     });
 
-    // Close chat on button click
-    chatClose.addEventListener('click', () => {
-      hideChat();
+    // Handle callout click to open chat
+    callout.addEventListener('click', showChat);
+
+    // Start chat button click
+    startChatButton.addEventListener('click', () => {
+      welcomeScreen.style.display = 'none';
+      preChatForm.style.display = 'flex';
     });
 
-    // Show chat on callout click
-    callout.addEventListener('click', showChat);
+    // Pre-chat form submission
+    preChatForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      userName = document.getElementById('user-name').value;
+      userEmail = document.getElementById('user-email').value;
+
+      // Send user details to server to start a private chat
+      socket.emit('start_chat', { name: userName, email: userEmail });
+
+      preChatForm.style.display = 'none';
+      chatMessages.style.display = 'flex';
+      chatInputContainer.style.display = 'flex';
+    });
 
     // Handle incoming messages
     socket.on('message', (data) => {
-      appendMessage(data.name === 'User' ? 'You' : 'Agent', data.message);
+      if (data.name !== userName) { // Show only agent messages for user
+        appendMessage('Agent', data.message);
+      }
       saveMessageToLocalStorage(data.name, data.message);
     });
 
