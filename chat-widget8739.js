@@ -1,7 +1,7 @@
 (function () {
   function loadSupabaseCDN(callback) {
     const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js';
+    script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js';
     script.onload = callback;
     document.head.appendChild(script);
   }
@@ -12,7 +12,7 @@
     style.innerHTML = `
       #chat-container {
         position: fixed;
-        bottom: 0;
+        bottom: 60px; /* Adjusted to account for the chat button height */
         right: 20px;
         width: 400px;
         height: 500px;
@@ -81,7 +81,7 @@
       }
       #callout {
         position: fixed;
-        bottom: 150px;
+        bottom: 20px; /* Adjusted for proper positioning */
         right: 20px;
         background-color: #007bff;
         color: white;
@@ -93,6 +93,7 @@
         gap: 10px;
         transition: opacity 0.5s ease, transform 0.5s ease;
         cursor: pointer;
+        z-index: 9999;
       }
       #callout::after {
         content: '';
@@ -236,7 +237,7 @@
     // Initialize Supabase after the CDN is loaded
     loadSupabaseCDN(() => {
       const supabaseUrl = 'https://dvsoyesscauzsirtjthh.supabase.co';
-      const supabaseKey = 'YOUR_SUPABASE_KEY';
+      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2c295ZXNzY2F1enNpcnRqdGhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTQzNTU4NDQsImV4cCI6MjAyOTkzMTg0NH0.3HoGdobfXm7-SJtRSVF7R9kraDNHBFsiEaJunMjwpHk';
       const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
       // Connect to Socket.io
