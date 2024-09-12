@@ -203,7 +203,7 @@
     `;
     document.head.appendChild(style);
 
-   // Create chat elements
+    // Create chat elements
     const chatContainer = document.createElement('div');
     chatContainer.id = 'chat-container';
 
@@ -237,7 +237,7 @@
     // Initialize Supabase after the CDN is loaded
     loadSupabaseCDN(() => {
       const supabaseUrl = 'https://dvsoyesscauzsirtjthh.supabase.co';
-      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2c295ZXNzY2F1enNpcnRqdGhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTQzNTU4NDQsImV4cCI6MjAyOTkzMTg0NH0.3HoGdobfXm7-SJtRSVF7R9kraDNHBFsiEaJunMjwpHk';
+      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2c295ZXNzY2F1enNpcnRqdGhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTQzNTU4NDQsImV4cCI6MjAyOTkzMTg0NH0.3HoGdobfXm7-SJtRSVF7R9kraDNHBFsiEaJunMjwpHk'; // Replace with your Supabase key
       const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
       // Connect to Socket.io
@@ -256,10 +256,10 @@
       let chatVisible = false;
       let userName = '';
       let userEmail = '';
+      let userId = null; // Variable to store the user ID
 
       // Show chat container
       function showChat() {
-        console.log('Showing chat');
         chatContainer.classList.add('show');
         chatVisible = true;
         callout.style.display = 'none';
@@ -267,7 +267,6 @@
 
       // Hide chat container
       function hideChat() {
-        console.log('Hiding chat');
         chatContainer.classList.remove('show');
         chatVisible = false;
         showCallout();
@@ -275,7 +274,6 @@
 
       // Show callout message
       function showCallout() {
-        console.log('Showing callout');
         callout.style.opacity = 1;
         callout.style.transform = 'translateY(0)';
         setTimeout(() => {
@@ -298,7 +296,6 @@
 
       // Start chat button click
       startChatButton.addEventListener('click', () => {
-        console.log('Starting chat');
         welcomeScreen.style.display = 'none';
         preChatForm.style.display = 'flex';
       });
@@ -309,11 +306,20 @@
         userName = document.getElementById('user-name').value;
         userEmail = document.getElementById('user-email').value;
 
+        // Save user details in Supabase
+        const { data: user, error } = await supabase
+          .from('chatusers')
+          .upsert([{ name: userName, email: userEmail }], { returning: 'minimal' });
+
+        if (error) {
+          console.error('Error inserting user:', error);
+          return;
+        }
+
+        userId = user[0].id; // Assuming user[0].id contains the new user's ID
+
         // Send user details to server to start a private chat
         socket.emit('start_chat', { name: userName, email: userEmail });
-
-        // Save user details in Supabase
-        await supabase.from('chatusers').insert([{ name: userName, email: userEmail }]);
 
         preChatForm.style.display = 'none';
         chatMessages.style.display = 'flex';
@@ -340,12 +346,12 @@
       // Handle sending messages
       function sendMessage() {
         const message = chatInput.value.trim();
-        if (message) {
+        if (message && userId) {
           // Display the message immediately on the client's chat
           appendMessage('You', message);
 
           // Send the message to the server
-          socket.emit('message', { message, from: 'user' });
+          socket.emit('message', { message, from: 'user', userId }); // Include userId here
 
           // Clear the input field
           chatInput.value = '';
