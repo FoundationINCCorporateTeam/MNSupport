@@ -1,7 +1,7 @@
 (function () {
   function loadSupabaseCDN(callback) {
     const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js';
+    script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js';
     script.onload = callback;
     document.head.appendChild(script);
   }
@@ -203,7 +203,7 @@
     `;
     document.head.appendChild(style);
 
-    // Create chat elements
+   // Create chat elements
     const chatContainer = document.createElement('div');
     chatContainer.id = 'chat-container';
 
@@ -237,7 +237,7 @@
     // Initialize Supabase after the CDN is loaded
     loadSupabaseCDN(() => {
       const supabaseUrl = 'https://dvsoyesscauzsirtjthh.supabase.co';
-      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2c295ZXNzY2F1enNpcnRqdGhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTQzNTU4NDQsImV4cCI6MjAyOTkzMTg0NH0.3HoGdobfXm7-SJtRSVF7R9kraDNHBFsiEaJunMjwpHk';
+      const supabaseKey = 'YOUR_SUPABASE_KEY';
       const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
       // Connect to Socket.io
@@ -313,7 +313,7 @@
         socket.emit('start_chat', { name: userName, email: userEmail });
 
         // Save user details in Supabase
-        await supabase.from('chats').insert([{ name: userName, email: userEmail }]);
+        await supabase.from('chatusers').insert([{ name: userName, email: userEmail }]);
 
         preChatForm.style.display = 'none';
         chatMessages.style.display = 'flex';
