@@ -300,31 +300,35 @@
         preChatForm.style.display = 'flex';
       });
 
-      // Pre-chat form submission
-      preChatForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        userName = document.getElementById('user-name').value;
-        userEmail = document.getElementById('user-email').value;
+preChatForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  userName = document.getElementById('user-name').value;
+  userEmail = document.getElementById('user-email').value;
 
-        // Save user details in Supabase
-        const { data: user, error } = await supabase
-          .from('chatusers')
-          .upsert([{ name: userName, email: userEmail }], { returning: 'minimal' });
+  // Save user details in Supabase
+  const { data: user, error } = await supabase
+    .from('chatusers')
+    .upsert([{ name: userName, email: userEmail }], { returning: 'minimal' });
 
-        if (error) {
-          console.error('Error inserting user:', error);
-          return;
-        }
+  if (error) {
+    console.error('Error inserting user:', error);
+    return;
+  }
 
-        userId = user[0].id; // Assuming user[0].id contains the new user's ID
+  if (user && user.length > 0) {
+    userId = user[0].id; // Assuming user[0].id contains the new user's ID
 
-        // Send user details to server to start a private chat
-        socket.emit('start_chat', { name: userName, email: userEmail });
+    // Send user details to server to start a private chat
+    socket.emit('start_chat', { name: userName, email: userEmail });
 
-        preChatForm.style.display = 'none';
-        chatMessages.style.display = 'flex';
-        chatInputContainer.style.display = 'flex';
-      });
+    preChatForm.style.display = 'none';
+    chatMessages.style.display = 'flex';
+    chatInputContainer.style.display = 'flex';
+  } else {
+    console.error('User data not returned from Supabase.');
+  }
+});
+
 
       // Handle incoming messages
       socket.on('message', (data) => {
