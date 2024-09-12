@@ -1,4 +1,3 @@
-<!-- Chat Widget HTML and CSS/JS -->
 (function () {
   function initializeChat() {
     // Inject CSS styles
@@ -6,7 +5,7 @@
     style.innerHTML = `
       #chat-container {
         position: fixed;
-        bottom: 20px;
+        bottom: 50px; /* Raised the chat container */
         right: 20px;
         width: 400px; /* Increased width */
         height: 500px; /* Increased height */
@@ -90,7 +89,7 @@
       }
       #callout {
         position: fixed;
-        bottom: 100px;
+        bottom: 150px; /* Position above the chat widget */
         right: 20px;
         background-color: #007bff;
         color: white;
@@ -191,7 +190,7 @@
     callout.id = 'callout';
     callout.innerHTML = `
       <span>Need help? Click here to chat!</span>
-      <button id="callout-dismiss">X</button>
+      <button id="callout-dismiss">✕</button>
     `;
     document.body.appendChild(callout);
 
@@ -271,9 +270,14 @@
     function sendMessage() {
       const message = chatInput.value.trim();
       if (message) {
-        appendMessage('You', message); // Display the message immediately on the client's chat
-        socket.emit('message', { message, from: 'user' }); // Send the message to the server
-        chatInput.value = ''; // Clear the input field
+        // Display the message immediately on the client's chat
+        appendMessage('You', message);
+
+        // Send the message to the server
+        socket.emit('message', { message, from: 'user' });
+
+        // Clear the input field
+        chatInput.value = '';
       }
     }
 
@@ -298,7 +302,7 @@
     function loadMessagesFromLocalStorage() {
       const messages = JSON.parse(localStorage.getItem('messages')) || [];
       messages.forEach((msg) => {
-        appendMessage(msg.name, msg.message);
+        appendMessage(msg.name === 'User' ? 'You' : 'Agent', msg.message);
       });
     }
 
