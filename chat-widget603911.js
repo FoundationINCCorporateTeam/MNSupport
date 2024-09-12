@@ -305,10 +305,20 @@ preChatForm.addEventListener('submit', async (e) => {
   userName = document.getElementById('user-name').value;
   userEmail = document.getElementById('user-email').value;
 
-  // Check if the user already exists
-  const { data: existingUsers, error: fetchError } = await supabase
+  // Perform upsert to create or update the user
+  const { data: upsertData, error: upsertError } = await supabase
     .from('chatusers')
-    .select('*')
+    .upsert([{ name: userName, email: userEmail }], { returning: 'minimal' });
+
+  if (upsertError) {
+    console.error('Error upserting user:', upsertError);
+    return;
+  }
+
+  // After upserting, fetch the user to get their ID
+  const { data: fetchedUsers, error: fetchError } = await supabase
+    .from('chatusers')
+    .select('id')
     .eq('email', userEmail)
     .eq('name', userName);
 
@@ -317,37 +327,21 @@ preChatForm.addEventListener('submit', async (e) => {
     return;
   }
 
-  if (existingUsers && existingUsers.length > 0) {
-    // User already exists
-    userId = existingUsers[0].id;
+  if (fetchedUsers && fetchedUsers.length > 0) {
+    userId = fetchedUsers[0].id;
   } else {
-    // User does not exist, perform upsert
-    const { data: insertedUsers, error: upsertError } = await supabase
-      .from('chatusers')
-      .upsert([{ name: userName, email: userEmail }], { returning: 'minimal' });
-
-    if (upsertError) {
-      console.error('Error inserting user:', upsertError);
-      return;
-    }
-
-    if (insertedUsers && insertedUsers.length > 0) {
-      userId = insertedUsers[0].id;
-    } else {
-      console.error('Failed to retrieve inserted user ID.');
-      return;
-    }
+    console.error('Failed to retrieve user ID.');
+    return;
   }
 
-  // Send user details to server to start a private chat
+  // Send user details to the server to start a private chat
   socket.emit('start_chat', { name: userName, email: userEmail });
 
   preChatForm.style.display = 'none';
   chatMessages.style.display = 'flex';
   chatInputContainer.style.display = 'flex';
 });
-
-      // Handle incoming messages
+     // Handle incoming messages
       socket.on('message', (data) => {
         if (data.name !== userName) { // Show only agent messages for user
           appendMessage('Agent', data.message);
