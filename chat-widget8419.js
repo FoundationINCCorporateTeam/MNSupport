@@ -227,12 +227,12 @@
     document.body.appendChild(callout);
 
     // Initialize Supabase
-    const supabaseUrl = 'YOUR_SUPABASE_URL';
-    const supabaseKey = 'YOUR_SUPABASE_KEY';
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    const supabaseUrl = 'https://dvsoyesscauzsirtjthh.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2c295ZXNzY2F1enNpcnRqdGhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTQzNTU4NDQsImV4cCI6MjAyOTkzMTg0NH0.3HoGdobfXm7-SJtRSVF7R9kraDNHBFsiEaJunMjwpHk';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
     // Connect to Socket.io
-    const socket = io('https://your-socket-url', { transports: ['websocket'] });
+    const socket = io('https://glorious-goggles-vxqv66jqvv7c7gx-3000.app.github.dev/', { transports: ['websocket'] });
 
     const chatMessages = document.getElementById('chat-messages');
     const chatInput = document.getElementById('chat-input');
