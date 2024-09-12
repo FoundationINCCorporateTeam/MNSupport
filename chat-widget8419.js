@@ -1,4 +1,12 @@
 (function () {
+  // Function to load Supabase CDN
+  function loadSupabaseCDN(callback) {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/supabase.min.js';
+    script.onload = callback;
+    document.head.appendChild(script);
+  }
+
   function initializeChat() {
     // Inject CSS styles
     const style = document.createElement('style');
@@ -226,145 +234,147 @@
     `;
     document.body.appendChild(callout);
 
-    // Initialize Supabase
-    const supabaseUrl = 'https://dvsoyesscauzsirtjthh.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2c295ZXNzY2F1enNpcnRqdGhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTQzNTU4NDQsImV4cCI6MjAyOTkzMTg0NH0.3HoGdobfXm7-SJtRSVF7R9kraDNHBFsiEaJunMjwpHk';
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    // Initialize Supabase after the CDN is loaded
+    loadSupabaseCDN(() => {
+      const supabaseUrl = 'https://dvsoyesscauzsirtjthh.supabase.co';
+      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2c295ZXNzY2F1enNpcnRqdGhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTQzNTU4NDQsImV4cCI6MjAyOTkzMTg0NH0.3HoGdobfXm7-SJtRSVF7R9kraDNHBFsiEaJunMjwpHk';
+      const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-    // Connect to Socket.io
-    const socket = io('https://glorious-goggles-vxqv66jqvv7c7gx-3000.app.github.dev/', { transports: ['websocket'] });
+      // Connect to Socket.io
+      const socket = io('https://glorious-goggles-vxqv66jqvv7c7gx-3000.app.github.dev/', { transports: ['websocket'] });
 
-    const chatMessages = document.getElementById('chat-messages');
-    const chatInput = document.getElementById('chat-input');
-    const chatSend = document.getElementById('chat-send');
-    const chatHeader = document.getElementById('chat-header');
-    const welcomeScreen = document.getElementById('welcome-screen');
-    const preChatForm = document.getElementById('pre-chat-form');
-    const startChatButton = document.getElementById('start-chat');
-    const chatInputContainer = document.getElementById('chat-input-container');
+      const chatMessages = document.getElementById('chat-messages');
+      const chatInput = document.getElementById('chat-input');
+      const chatSend = document.getElementById('chat-send');
+      const chatHeader = document.getElementById('chat-header');
+      const welcomeScreen = document.getElementById('welcome-screen');
+      const preChatForm = document.getElementById('pre-chat-form');
+      const startChatButton = document.getElementById('start-chat');
+      const chatInputContainer = document.getElementById('chat-input-container');
 
-    let chatVisible = false;
-    let userName = '';
-    let userEmail = '';
+      let chatVisible = false;
+      let userName = '';
+      let userEmail = '';
 
-    // Show chat container
-    function showChat() {
-      chatContainer.classList.add('show');
-      chatVisible = true;
-      callout.style.display = 'none';
-    }
-
-    // Hide chat container
-    function hideChat() {
-      chatContainer.classList.remove('show');
-      chatVisible = false;
-      showCallout();
-    }
-
-    // Show callout message
-    function showCallout() {
-      callout.style.opacity = 1;
-      callout.style.transform = 'translateY(0)';
-      setTimeout(() => {
-        callout.style.opacity = 0;
-        callout.style.transform = 'translateY(10px)';
-      }, 10000); // Show for 10 seconds
-    }
-
-    // Toggle chat container visibility
-    chatHeader.addEventListener('click', () => {
-      if (chatVisible) {
-        hideChat();
-      } else {
-        showChat();
+      // Show chat container
+      function showChat() {
+        chatContainer.classList.add('show');
+        chatVisible = true;
+        callout.style.display = 'none';
       }
-    });
 
-    // Handle callout click to open chat
-    callout.addEventListener('click', showChat);
-
-    // Start chat button click
-    startChatButton.addEventListener('click', () => {
-      welcomeScreen.style.display = 'none';
-      preChatForm.style.display = 'flex';
-    });
-
-    // Pre-chat form submission
-    preChatForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      userName = document.getElementById('user-name').value;
-      userEmail = document.getElementById('user-email').value;
-
-      // Send user details to server to start a private chat
-      socket.emit('start_chat', { name: userName, email: userEmail });
-
-      // Save user details in Supabase
-      await supabase.from('chats').insert([{ name: userName, email: userEmail }]);
-
-      preChatForm.style.display = 'none';
-      chatMessages.style.display = 'flex';
-      chatInputContainer.style.display = 'flex';
-    });
-
-    // Handle incoming messages
-    socket.on('message', (data) => {
-      if (data.name !== userName) { // Show only agent messages for user
-        appendMessage('Agent', data.message);
+      // Hide chat container
+      function hideChat() {
+        chatContainer.classList.remove('show');
+        chatVisible = false;
+        showCallout();
       }
-      saveMessageToLocalStorage(data.name, data.message);
-    });
 
-    // Append message to chat
-    function appendMessage(name, message) {
-      const messageElement = document.createElement('div');
-      messageElement.className = `message ${name === 'You' ? 'user' : 'agent'}`;
-      messageElement.textContent = message;
-      chatMessages.appendChild(messageElement);
-      chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll to the latest message
-    }
-
-    // Handle sending messages
-    function sendMessage() {
-      const message = chatInput.value.trim();
-      if (message) {
-        // Display the message immediately on the client's chat
-        appendMessage('You', message);
-
-        // Send the message to the server
-        socket.emit('message', { message, from: 'user' });
-
-        // Clear the input field
-        chatInput.value = '';
+      // Show callout message
+      function showCallout() {
+        callout.style.opacity = 1;
+        callout.style.transform = 'translateY(0)';
+        setTimeout(() => {
+          callout.style.opacity = 0;
+          callout.style.transform = 'translateY(10px)';
+        }, 10000); // Show for 10 seconds
       }
-    }
 
-    // Send message on button click
-    chatSend.addEventListener('click', sendMessage);
-
-    // Send message on pressing Enter key
-    chatInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        sendMessage();
-      }
-    });
-
-    // Save message to localStorage
-    function saveMessageToLocalStorage(name, message) {
-      const messages = JSON.parse(localStorage.getItem('messages')) || [];
-      messages.push({ name, message, timestamp: new Date().toISOString() });
-      localStorage.setItem('messages', JSON.stringify(messages));
-    }
-
-    // Load messages from localStorage
-    function loadMessagesFromLocalStorage() {
-      const messages = JSON.parse(localStorage.getItem('messages')) || [];
-      messages.forEach((msg) => {
-        appendMessage(msg.name === 'User' ? 'You' : 'Agent', msg.message);
+      // Toggle chat container visibility
+      chatHeader.addEventListener('click', () => {
+        if (chatVisible) {
+          hideChat();
+        } else {
+          showChat();
+        }
       });
-    }
 
-    // Load messages on initialization
-    loadMessagesFromLocalStorage();
+      // Handle callout click to open chat
+      callout.addEventListener('click', showChat);
+
+      // Start chat button click
+      startChatButton.addEventListener('click', () => {
+        welcomeScreen.style.display = 'none';
+        preChatForm.style.display = 'flex';
+      });
+
+      // Pre-chat form submission
+      preChatForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        userName = document.getElementById('user-name').value;
+        userEmail = document.getElementById('user-email').value;
+
+        // Send user details to server to start a private chat
+        socket.emit('start_chat', { name: userName, email: userEmail });
+
+        // Save user details in Supabase
+        await supabase.from('chats').insert([{ name: userName, email: userEmail }]);
+
+        preChatForm.style.display = 'none';
+        chatMessages.style.display = 'flex';
+        chatInputContainer.style.display = 'flex';
+      });
+
+      // Handle incoming messages
+      socket.on('message', (data) => {
+        if (data.name !== userName) { // Show only agent messages for user
+          appendMessage('Agent', data.message);
+        }
+        saveMessageToLocalStorage(data.name, data.message);
+      });
+
+      // Append message to chat
+      function appendMessage(name, message) {
+        const messageElement = document.createElement('div');
+        messageElement.className = `message ${name === 'You' ? 'user' : 'agent'}`;
+        messageElement.textContent = message;
+        chatMessages.appendChild(messageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll to the latest message
+      }
+
+      // Handle sending messages
+      function sendMessage() {
+        const message = chatInput.value.trim();
+        if (message) {
+          // Display the message immediately on the client's chat
+          appendMessage('You', message);
+
+          // Send the message to the server
+          socket.emit('message', { message, from: 'user' });
+
+          // Clear the input field
+          chatInput.value = '';
+        }
+      }
+
+      // Send message on button click
+      chatSend.addEventListener('click', sendMessage);
+
+      // Send message on pressing Enter key
+      chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          sendMessage();
+        }
+      });
+
+      // Save message to localStorage
+      function saveMessageToLocalStorage(name, message) {
+        const messages = JSON.parse(localStorage.getItem('messages')) || [];
+        messages.push({ name, message, timestamp: new Date().toISOString() });
+        localStorage.setItem('messages', JSON.stringify(messages));
+      }
+
+      // Load messages from localStorage
+      function loadMessagesFromLocalStorage() {
+        const messages = JSON.parse(localStorage.getItem('messages')) || [];
+        messages.forEach((msg) => {
+          appendMessage(msg.name === 'User' ? 'You' : 'Agent', msg.message);
+        });
+      }
+
+      // Load messages on initialization
+      loadMessagesFromLocalStorage();
+    });
   }
 
   // Wait for DOM to load before initializing the chat
