@@ -204,9 +204,9 @@
     document.head.appendChild(style);
 
     // Create chat elements
+ // Create chat elements
     const chatContainer = document.createElement('div');
     chatContainer.id = 'chat-container';
-
     chatContainer.innerHTML = `
       <div id="chat-header">Live Chat</div>
       <div id="welcome-screen">
@@ -229,15 +229,13 @@
     // Create callout element
     const callout = document.createElement('div');
     callout.id = 'callout';
-    callout.innerHTML = `
-      <span>Need help? Click here to chat!</span>
-    `;
+    callout.innerHTML = `<span>Need help? Click here to chat!</span>`;
     document.body.appendChild(callout);
 
     // Initialize Supabase after the CDN is loaded
     loadSupabaseCDN(() => {
       const supabaseUrl = 'https://dvsoyesscauzsirtjthh.supabase.co';
-      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2c295ZXNzY2F1enNpcnRqdGhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTQzNTU4NDQsImV4cCI6MjAyOTkzMTg0NH0.3HoGdobfXm7-SJtRSVF7R9kraDNHBFsiEaJunMjwpHk';
+      const supabaseKey = 'YOUR_SUPABASE_KEY';
       const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
       // Connect to Socket.io
@@ -251,6 +249,7 @@
       const preChatForm = document.getElementById('pre-chat-form');
       const startChatButton = document.getElementById('start-chat');
       const chatInputContainer = document.getElementById('chat-input-container');
+      const callout = document.getElementById('callout');
 
       let chatVisible = false;
       let userName = '';
@@ -258,6 +257,7 @@
 
       // Show chat container
       function showChat() {
+        console.log('Showing chat');
         chatContainer.classList.add('show');
         chatVisible = true;
         callout.style.display = 'none';
@@ -265,6 +265,7 @@
 
       // Hide chat container
       function hideChat() {
+        console.log('Hiding chat');
         chatContainer.classList.remove('show');
         chatVisible = false;
         showCallout();
@@ -272,6 +273,7 @@
 
       // Show callout message
       function showCallout() {
+        console.log('Showing callout');
         callout.style.opacity = 1;
         callout.style.transform = 'translateY(0)';
         setTimeout(() => {
@@ -294,6 +296,7 @@
 
       // Start chat button click
       startChatButton.addEventListener('click', () => {
+        console.log('Starting chat');
         welcomeScreen.style.display = 'none';
         preChatForm.style.display = 'flex';
       });
