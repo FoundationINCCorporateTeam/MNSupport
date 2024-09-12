@@ -46,6 +46,9 @@
         font-size: 16px;
         cursor: pointer;
         padding: 0 10px;
+        background: none;
+        border: none;
+        color: white;
       }
       #chat-messages {
         flex: 1;
@@ -91,13 +94,24 @@
         right: 20px;
         background-color: #007bff;
         color: white;
-        border-radius: 12px;
+        border-radius: 16px;
         padding: 10px 15px;
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         display: flex;
         align-items: center;
         gap: 10px;
         transition: opacity 0.5s ease, transform 0.5s ease; /* Add animation for callout */
+        cursor: pointer;
+      }
+      #callout::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        right: 20px;
+        width: 0;
+        height: 0;
+        border: 10px solid transparent;
+        border-top-color: #007bff;
       }
       #callout-dismiss {
         background: none;
@@ -122,11 +136,31 @@
         align-self: flex-end;
         border-top-left-radius: 0;
       }
+      .message.user::after {
+        content: '';
+        position: absolute;
+        top: 10px;
+        right: -10px;
+        width: 0;
+        height: 0;
+        border: 10px solid transparent;
+        border-left-color: #007bff;
+      }
       .message.agent {
         background-color: #f1f0f0;
         color: black;
         align-self: flex-start;
         border-top-right-radius: 0;
+      }
+      .message.agent::after {
+        content: '';
+        position: absolute;
+        top: 10px;
+        left: -10px;
+        width: 0;
+        height: 0;
+        border: 10px solid transparent;
+        border-right-color: #f1f0f0;
       }
       @keyframes fadeIn {
         from { opacity: 0; }
@@ -199,9 +233,6 @@
     // Handle callout dismiss
     document.getElementById('callout-dismiss').addEventListener('click', () => {
       callout.style.opacity = 0;
-      if (!chatVisible) {
-        chatVisible = false;
-      }
     });
 
     // Toggle chat container visibility
@@ -217,6 +248,9 @@
     chatClose.addEventListener('click', () => {
       hideChat();
     });
+
+    // Show chat on callout click
+    callout.addEventListener('click', showChat);
 
     // Handle incoming messages
     socket.on('message', (data) => {
