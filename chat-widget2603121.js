@@ -237,7 +237,7 @@
     // Initialize Supabase after the CDN is loaded
     loadSupabaseCDN(() => {
       const supabaseUrl = 'https://dvsoyesscauzsirtjthh.supabase.co';
-      const supabaseKey = 'YOUR_SUPABASE_KEY_HERE'; // Replace with your Supabase key
+      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2c295ZXNzY2F1enNpcnRqdGhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTQzNTU4NDQsImV4cCI6MjAyOTkzMTg0NH0.3HoGdobfXm7-SJtRSVF7R9kraDNHBFsiEaJunMjwpHk'; // Replace with your Supabase key
       const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
       // Connect to Socket.io
