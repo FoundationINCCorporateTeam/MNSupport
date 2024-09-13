@@ -299,7 +299,7 @@
 
         // Save user information to Supabase
         const { data: profile, error } = await supabase
-          .from('profiles')
+          .from('chatusers')
           .insert({ name: userName, email: userEmail })
           .select();
 
