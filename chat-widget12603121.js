@@ -240,8 +240,26 @@
       const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2c295ZXNzY2F1enNpcnRqdGhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTQzNTU4NDQsImV4cCI6MjAyOTkzMTg0NH0.3HoGdobfXm7-SJtRSVF7R9kraDNHBFsiEaJunMjwpHk'; // Replace with your Supabase key
       const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-      // Connect to Socket.io
-      const socket = io('https://glorious-goggles-vxqv66jqvv7c7gx-3000.app.github.dev/', { transports: ['websocket'] });
+// Example of initializing Socket.io client with secure WebSocket
+const socket = io('wss://glorious-goggles-vxqv66jqvv7c7gx-3000.app.github.dev/', {
+  transports: ['websocket'],
+  secure: true, // Use this option for HTTPS/WSS connections
+  reconnect: true, // Enable auto-reconnect
+  rejectUnauthorized: false // Allow self-signed certificates (only for development)
+});
+
+// Event listeners for connection
+socket.on('connect', () => {
+  console.log('WebSocket connection established successfully');
+});
+
+socket.on('connect_error', (error) => {
+  console.error('Connection error:', error);
+});
+
+socket.on('disconnect', (reason) => {
+  console.log('Disconnected:', reason);
+});
 
       const chatMessages = document.getElementById('chat-messages');
       const chatInput = document.getElementById('chat-input');
