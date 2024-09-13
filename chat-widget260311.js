@@ -254,9 +254,9 @@
       const callout = document.getElementById('callout');
 
       let chatVisible = false;
+      let userId = null;
       let userName = '';
       let userEmail = '';
-      let userId = null; // Variable to store the user ID
 
       // Show chat container
       function showChat() {
@@ -300,14 +300,31 @@
 
       // Start chat button click
       startChatButton.addEventListener('click', () => {
-        welcomeScreen.style.display = 'none';
-        preChatForm.style.display = 'flex';
+        const storedUser = JSON.parse(localStorage.getItem('user'));
+
+        if (storedUser) {
+          userName = storedUser.name;
+          userEmail = storedUser.email;
+          userId = storedUser.id;
+
+          // Show chat UI
+          welcomeScreen.style.display = 'none';
+          chatMessages.style.display = 'flex';
+          chatInputContainer.style.display = 'flex';
+        } else {
+          // Show pre-chat form if no stored user
+          welcomeScreen.style.display = 'none';
+          preChatForm.style.display = 'flex';
+        }
       });
 
       preChatForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         userName = document.getElementById('user-name').value;
         userEmail = document.getElementById('user-email').value;
+
+        // Store user info in local storage
+        localStorage.setItem('user', JSON.stringify({ name: userName, email: userEmail }));
 
         // Perform insert to create a new user
         const { data: insertData, error: insertError } = await supabase
@@ -333,8 +350,16 @@
 
         if (fetchedUsers && fetchedUsers.length > 0) {
           userId = fetchedUsers[0].id;
+
+          // Update local storage with userId
+          const storedUser = JSON.parse(localStorage.getItem('user'));
+          if (storedUser) {
+            storedUser.id = userId;
+            localStorage.setItem('user', JSON.stringify(storedUser));
+          }
         } else {
           console.error('Failed to retrieve user ID.');
+          localStorage.removeItem('user'); // Clear local storage if user not found
           return;
         }
 
