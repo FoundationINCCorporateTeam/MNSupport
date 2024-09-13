@@ -288,7 +288,7 @@
         localStorage.setItem('userEmail', userEmail);
 
         // Send user data to Supabase
-        supabase.from('userData')
+        supabase.from('chatusers')
           .insert([{ name: userName, email: userEmail }])
           .then(({ data, error }) => {
             if (error) {
