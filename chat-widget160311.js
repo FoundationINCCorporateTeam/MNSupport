@@ -237,7 +237,7 @@
     // Initialize Supabase after the CDN is loaded
     loadSupabaseCDN(() => {
       const supabaseUrl = 'https://dvsoyesscauzsirtjthh.supabase.co';
-      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2c295ZXNzY2F1enNpcnRqdGhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTQzNTU4NDQsImV4cCI6MjAyOTkzMTg0NH0.3HoGdobfXm7-SJtRSVF7R9kraDNHBFsiEaJunMjwpHk'; // Replace with your Supabase key
+      const supabaseKey = 'YOUR_SUPABASE_KEY_HERE'; // Replace with your Supabase key
       const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
       // Connect to Socket.io
@@ -270,6 +270,10 @@
         chatContainer.classList.remove('show');
         chatVisible = false;
         showCallout();
+
+        // Clear chat messages and localStorage
+        chatMessages.innerHTML = '';
+        localStorage.removeItem('messages');
       }
 
       // Show callout message
@@ -300,49 +304,49 @@
         preChatForm.style.display = 'flex';
       });
 
-preChatForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  userName = document.getElementById('user-name').value;
-  userEmail = document.getElementById('user-email').value;
+      preChatForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        userName = document.getElementById('user-name').value;
+        userEmail = document.getElementById('user-email').value;
 
-  // Perform insert to create a new user
-  const { data: insertData, error: insertError } = await supabase
-    .from('chatusers')
-    .insert([{ name: userName, email: userEmail }], { returning: 'minimal' });
+        // Perform insert to create a new user
+        const { data: insertData, error: insertError } = await supabase
+          .from('chatusers')
+          .insert([{ name: userName, email: userEmail }], { returning: 'minimal' });
 
-  if (insertError && insertError.code !== '23505') { // '23505' is the PostgreSQL code for unique violation
-    console.error('Error inserting user:', insertError);
-    return;
-  }
+        if (insertError && insertError.code !== '23505') { // '23505' is the PostgreSQL code for unique violation
+          console.error('Error inserting user:', insertError);
+          return;
+        }
 
-  // After inserting, fetch the user to get their ID
-  const { data: fetchedUsers, error: fetchError } = await supabase
-    .from('chatusers')
-    .select('id')
-    .eq('email', userEmail)
-    .eq('name', userName);
+        // After inserting, fetch the user to get their ID
+        const { data: fetchedUsers, error: fetchError } = await supabase
+          .from('chatusers')
+          .select('id')
+          .eq('email', userEmail)
+          .eq('name', userName);
 
-  if (fetchError) {
-    console.error('Error fetching user:', fetchError);
-    return;
-  }
+        if (fetchError) {
+          console.error('Error fetching user:', fetchError);
+          return;
+        }
 
-  if (fetchedUsers && fetchedUsers.length > 0) {
-    userId = fetchedUsers[0].id;
-  } else {
-    console.error('Failed to retrieve user ID.');
-    return;
-  }
+        if (fetchedUsers && fetchedUsers.length > 0) {
+          userId = fetchedUsers[0].id;
+        } else {
+          console.error('Failed to retrieve user ID.');
+          return;
+        }
 
-  // Send user details to the server to start a private chat
-  socket.emit('start_chat', { name: userName, email: userEmail });
+        // Send user details to the server to start a private chat
+        socket.emit('start_chat', { name: userName, email: userEmail });
 
-  preChatForm.style.display = 'none';
-  chatMessages.style.display = 'flex';
-  chatInputContainer.style.display = 'flex';
-});
+        preChatForm.style.display = 'none';
+        chatMessages.style.display = 'flex';
+        chatInputContainer.style.display = 'flex';
+      });
 
-     // Handle incoming messages
+      // Handle incoming messages
       socket.on('message', (data) => {
         if (data.name !== userName) { // Show only agent messages for user
           appendMessage('Agent', data.message);
