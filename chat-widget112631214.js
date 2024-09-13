@@ -3,10 +3,12 @@
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js';
     script.onload = callback;
+    script.onerror = () => console.error('Failed to load Supabase CDN');
     document.head.appendChild(script);
   }
 
   function initializeChat() {
+    console.log('Initializing chat...');
     // Inject CSS styles
     const style = document.createElement('style');
     style.innerHTML = `
@@ -26,9 +28,11 @@
         z-index: 10000;
         transform: translateY(100%);
         transition: transform 0.3s ease;
+        visibility: hidden; /* Hidden by default */
       }
       #chat-container.show {
         transform: translateY(0);
+        visibility: visible; /* Make visible when shown */
       }
       #chat-header {
         background-color: #007bff;
@@ -94,16 +98,6 @@
         transition: opacity 0.5s ease, transform 0.5s ease;
         cursor: pointer;
         z-index: 9999;
-      }
-      #callout::after {
-        content: '';
-        position: absolute;
-        bottom: -10px;
-        right: 20px;
-        width: 0;
-        height: 0;
-        border: 10px solid transparent;
-        border-top-color: #007bff;
       }
       .message {
         padding: 10px 15px;
@@ -236,6 +230,7 @@
 
     // Initialize Supabase after the CDN is loaded
     loadSupabaseCDN(() => {
+      console.log('Supabase CDN loaded successfully');
       const supabaseUrl = 'https://dvsoyesscauzsirtjthh.supabase.co';
       const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2c295ZXNzY2F1enNpcnRqdGhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTQzNTU4NDQsImV4cCI6MjAyOTkzMTg0NH0.3HoGdobfXm7-SJtRSVF7R9kraDNHBFsiEaJunMjwpHk'; // Replace with your Supabase key
       const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
@@ -244,28 +239,16 @@
       const socket = io('https://glorious-goggles-vxqv66jqvv7c7gx-3000.app.github.dev/', { // Replace with your server URL
         transports: ['websocket'],
         secure: true,
-        reconnect: true,
-        rejectUnauthorized: false // Allow self-signed certificates (only for development)
       });
 
-      // Event listeners for connection
-      socket.on('connect', () => {
-        console.log('WebSocket connection established successfully');
-      });
+      console.log('Socket.io and Supabase initialized');
 
-      socket.on('connect_error', (error) => {
-        console.error('Connection error:', error);
-      });
-
-      socket.on('disconnect', (reason) => {
-        console.log('Disconnected:', reason);
-      });
-
+      const chatHeader = document.getElementById('chat-header');
       const chatMessages = document.getElementById('chat-messages');
       const chatInputContainer = document.getElementById('chat-input-container');
       const chatInput = document.getElementById('chat-input');
       const chatSend = document.getElementById('chat-send');
-      const chatHeader = document.getElementById('chat-header');
+      const chatContainer = document.getElementById('chat-container');
       const welcomeScreen = document.getElementById('welcome-screen');
       const preChatForm = document.getElementById('pre-chat-form');
       const callout = document.getElementById('callout');
@@ -305,7 +288,7 @@
         localStorage.setItem('userEmail', userEmail);
 
         // Send user data to Supabase
-        supabase.from('chatusers')
+        supabase.from('userData')
           .insert([{ name: userName, email: userEmail }])
           .then(({ data, error }) => {
             if (error) {
