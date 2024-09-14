@@ -335,6 +335,7 @@
         if (storedUserName && storedUserEmail && storedUserId) {
           // Load previous messages
           preChatForm.style.display = 'none';
+          welcomeScreen.style.display = 'none';
           chatInputContainer.style.display = 'flex';
           loadPreviousMessages(storedUserId);
         } else {
