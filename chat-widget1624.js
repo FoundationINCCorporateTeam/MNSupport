@@ -261,7 +261,7 @@
         console.log('Disconnected:', reason);
       });
 
-    const chatMessages = document.getElementById('chat-messages');
+     const chatMessages = document.getElementById('chat-messages');
       const chatInput = document.getElementById('chat-input');
       const chatSend = document.getElementById('chat-send');
       const chatHeader = document.getElementById('chat-header');
@@ -330,46 +330,49 @@
       const storedUserEmail = localStorage.getItem('userEmail');
       const storedUserId = localStorage.getItem('userId');
 
-      if (storedUserName && storedUserEmail && storedUserId) {
-        // Load previous messages
-        preChatForm.style.display = 'none';
-        chatInputContainer.style.display = 'flex';
-        loadPreviousMessages(storedUserId);
-      } else {
-        // Show welcome screen and pre-chat form
-        startChatButton.addEventListener('click', showPreChatForm);
-
-        // Handle pre-chat form submission
-        preChatForm.addEventListener('submit', async (event) => {
-          event.preventDefault();
-
-          const userName = document.getElementById('user-name').value;
-          const userEmail = document.getElementById('user-email').value;
-
-          // Store user data in local storage
-          localStorage.setItem('userName', userName);
-          localStorage.setItem('userEmail', userEmail);
-
-          // Save user information to Supabase
-          const { data: profile, error } = await supabase
-            .from('chatusers')
-            .insert({ name: userName, email: userEmail })
-            .select();
-
-          if (error) {
-            console.error('Error saving user information:', error);
-            return;
-          }
-
-          const userId = profile[0].id;
-          localStorage.setItem('userId', userId);
-
+      // If user data is found in localStorage, skip the form and start the chat
+      startChatButton.addEventListener('click', () => {
+        if (storedUserName && storedUserEmail && storedUserId) {
+          // Load previous messages
           preChatForm.style.display = 'none';
           chatInputContainer.style.display = 'flex';
+          loadPreviousMessages(storedUserId);
+        } else {
+          // If no user data, show the pre-chat form
+          showPreChatForm();
+        }
+      });
 
-          loadPreviousMessages(userId);
-        });
-      }
+      // Handle pre-chat form submission
+      preChatForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const userName = document.getElementById('user-name').value;
+        const userEmail = document.getElementById('user-email').value;
+
+        // Store user data in local storage
+        localStorage.setItem('userName', userName);
+        localStorage.setItem('userEmail', userEmail);
+
+        // Save user information to Supabase
+        const { data: profile, error } = await supabase
+          .from('chatusers')
+          .insert({ name: userName, email: userEmail })
+          .select();
+
+        if (error) {
+          console.error('Error saving user information:', error);
+          return;
+        }
+
+        const userId = profile[0].id;
+        localStorage.setItem('userId', userId);
+
+        preChatForm.style.display = 'none';
+        chatInputContainer.style.display = 'flex';
+
+        loadPreviousMessages(userId);
+      });
 
       // Function to load previous messages
       async function loadPreviousMessages(userId) {
