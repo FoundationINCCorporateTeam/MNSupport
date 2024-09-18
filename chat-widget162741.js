@@ -241,7 +241,7 @@
       const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
       // Initialize Socket.io client with secure WebSocket
-      const socket = io('https://glorious-goggles-vxqv66jqvv7c7gx-3000.app.github.dev/', { // Replace with your server URL
+      const socket = io('https://glorious-goggles-vxqv66jqvv7c7gx-3000.app.github.dev', { // Replace with your server URL
         transports: ['websocket'],
         secure: true,
         reconnect: true,
