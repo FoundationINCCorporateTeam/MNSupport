@@ -241,12 +241,12 @@
       const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
       // Initialize Socket.io client with secure WebSocket
-      const socket = io('https://glorious-goggles-vxqv66jqvv7c7gx-3000.app.github.dev', { // Replace with your server URL
-        transports: ['websocket'],
-        secure: true,
-        reconnect: true,
-        rejectUnauthorized: false // Allow self-signed certificates (only for development)
-      });
+const socket = io('ws://glorious-goggles-vxqv66jqvv7c7gx-3000.app.github.dev', { 
+    transports: ['websocket'],
+    secure: false,
+    reconnect: true
+});
+
 
       // Event listeners for connection
       socket.on('connect', () => {
