@@ -7,7 +7,7 @@
   }
     function loadSocketIO(callback) {
     const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/socket.io-client@4.6.1/dist/socket.io.min.js'; // Socket.IO CDN
+    script.src = 'https://cdn.jsdelivr.net/npm/socket.io-client@4.8.0/build/cjs/index.min.js'; // Socket.IO CDN
     script.onload = callback;
     document.head.appendChild(script);
   }
