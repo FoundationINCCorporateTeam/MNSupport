@@ -412,4 +412,4 @@
 
   // Initialize the chat interface when the document is ready
   document.addEventListener('DOMContentLoaded', initializeChat);
-})();
+)();
