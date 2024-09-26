@@ -5,6 +5,12 @@
     script.onload = callback;
     document.head.appendChild(script);
   }
+    function loadSocketIO(callback) {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/socket.io-client@4.6.1/dist/socket.io.min.js'; // Socket.IO CDN
+    script.onload = callback;
+    document.head.appendChild(script);
+  }
 
   function initializeChat() {
     // Inject CSS styles
@@ -240,26 +246,31 @@
       const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2c295ZXNzY2F1enNpcnRqdGhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTQzNTU4NDQsImV4cCI6MjAyOTkzMTg0NH0.3HoGdobfXm7-SJtRSVF7R9kraDNHBFsiEaJunMjwpHk'; // Replace with your Supabase key
       const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-      // Initialize Socket.io client with secure WebSocket
-const socket = io('https://glorious-goggles-vxqv66jqvv7c7gx-3000.app.github.dev', { 
-    transports: ['websocket'],
-    secure: false,
-    reconnect: true
-});
+      loadSocketIO(() => {
+        // Initialize Socket.io client with secure WebSocket
+        const socket = io('https://glorious-goggles-vxqv66jqvv7c7gx-3000.app.github.dev', {
+          transports: ['websocket'],
+          secure: false,
+          reconnect: true
+        });
 
+        // WebSocket event listeners
+        socket.on('connect', () => {
+          console.log('WebSocket connection established successfully');
+        });
 
-      // Event listeners for connection
-      socket.on('connect', () => {
-        console.log('WebSocket connection established successfully');
+        socket.on('connect_error', (error) => {
+          console.error('Connection error:', error);
+        });
+
+        socket.on('disconnect', (reason) => {
+          console.log('Disconnected:', reason);
+        });
+
+        // Chat logic continues here (message sending, UI interaction, etc.)
       });
-
-      socket.on('connect_error', (error) => {
-        console.error('Connection error:', error);
-      });
-
-      socket.on('disconnect', (reason) => {
-        console.log('Disconnected:', reason);
-      });
+    });
+  }
 
      const chatMessages = document.getElementById('chat-messages');
       const chatInput = document.getElementById('chat-input');
