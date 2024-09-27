@@ -5,9 +5,10 @@
     script.onload = callback;
     document.head.appendChild(script);
   }
-    function loadSocketIO(callback) {
+
+  function loadSocketIO(callback) {
     const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/socket.io-client@4.8.0/build/cjs/index.min.js'; // Socket.IO CDN
+    script.src = 'https://cdn.jsdelivr.net/npm/socket.io-client@4.8.0/build/cjs/index.min.js';
     script.onload = callback;
     document.head.appendChild(script);
   }
@@ -18,7 +19,7 @@
     style.innerHTML = `
       #chat-container {
         position: fixed;
-        bottom: 60px; /* Adjusted to account for the chat button height */
+        bottom: 60px;
         right: 20px;
         width: 400px;
         height: 500px;
@@ -87,7 +88,7 @@
       }
       #callout {
         position: fixed;
-        bottom: 20px; /* Adjusted for proper positioning */
+        bottom: 20px;
         right: 20px;
         background-color: #007bff;
         color: white;
@@ -240,176 +241,101 @@
     `;
     document.body.appendChild(callout);
 
-    // Initialize Supabase after the CDN is loaded
     loadSupabaseCDN(() => {
       const supabaseUrl = 'https://dvsoyesscauzsirtjthh.supabase.co';
       const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2c295ZXNzY2F1enNpcnRqdGhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTQzNTU4NDQsImV4cCI6MjAyOTkzMTg0NH0.3HoGdobfXm7-SJtRSVF7R9kraDNHBFsiEaJunMjwpHk'; // Replace with your Supabase key
       const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
       loadSocketIO(() => {
-        // Initialize Socket.io client with secure WebSocket
         const socket = io('https://glorious-goggles-vxqv66jqvv7c7gx-3000.app.github.dev', {
           transports: ['websocket'],
           secure: false,
           reconnect: true
         });
 
-        // WebSocket event listeners
-        socket.on('connect', () => {
-          console.log('WebSocket connection established successfully');
+        socket.on('connect', () => console.log('WebSocket connected'));
+        socket.on('connect_error', (error) => console.error('Connection error:', error));
+        socket.on('disconnect', (reason) => console.log('Disconnected:', reason));
+
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        const chatSend = document.getElementById('chat-send');
+        const chatHeader = document.getElementById('chat-header');
+        const welcomeScreen = document.getElementById('welcome-screen');
+        const preChatForm = document.getElementById('pre-chat-form');
+        const chatInputContainer = document.getElementById('chat-input-container');
+        const startChatButton = document.getElementById('start-chat');
+
+        let userName = '';
+        let userEmail = '';
+
+        // Show/hide chat container
+        chatHeader.addEventListener('click', () => {
+          chatContainer.classList.toggle('show');
         });
 
-        socket.on('connect_error', (error) => {
-          console.error('Connection error:', error);
+        callout.addEventListener('click', () => {
+          chatContainer.classList.toggle('show');
+          callout.style.opacity = 0;
+          callout.style.transform = 'translateY(50px)';
         });
 
-        socket.on('disconnect', (reason) => {
-          console.log('Disconnected:', reason);
+        // Handle starting the chat
+        startChatButton.addEventListener('click', () => {
+          welcomeScreen.style.display = 'none';
+          preChatForm.style.display = 'flex';
         });
 
-        // Chat logic continues here (message sending, UI interaction, etc.)
+        preChatForm.addEventListener('submit', (event) => {
+          event.preventDefault();
+          userName = document.getElementById('user-name').value;
+          userEmail = document.getElementById('user-email').value;
+          preChatForm.style.display = 'none';
+          chatInputContainer.style.display = 'flex';
+
+          supabase.from('chat_logs')
+            .insert([{ name: userName, email: userEmail, message: 'User joined the chat' }])
+            .then(response => console.log('User joined:', response.data))
+            .catch(error => console.error('Error inserting into chat_logs:', error));
+        });
+
+        // Send message
+        chatSend.addEventListener('click', sendMessage);
+
+        function sendMessage() {
+          const message = chatInput.value.trim();
+          if (message === '') return;
+
+          addMessage('user', message);
+
+          // Insert message to Supabase
+          supabase.from('chat_logs')
+            .insert([{ name: userName, email: userEmail, message }])
+            .then(response => console.log('Message sent:', response.data))
+            .catch(error => console.error('Error inserting into chat_logs:', error));
+
+          // Emit message to WebSocket
+          socket.emit('userMessage', { name: userName, message });
+
+          chatInput.value = '';
+        }
+
+        function addMessage(sender, message) {
+          const messageElement = document.createElement('div');
+          messageElement.classList.add('message', sender);
+          messageElement.innerText = message;
+          chatMessages.appendChild(messageElement);
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Handle incoming messages from agent
+        socket.on('agentMessage', (data) => {
+          addMessage('agent', data.message);
+        });
       });
     });
   }
 
-     const chatMessages = document.getElementById('chat-messages');
-      const chatInput = document.getElementById('chat-input');
-      const chatSend = document.getElementById('chat-send');
-      const chatHeader = document.getElementById('chat-header');
-      const welcomeScreen = document.getElementById('welcome-screen');
-      const preChatForm = document.getElementById('pre-chat-form');
-      const chatInputContainer = document.getElementById('chat-input-container');
-      const startChatButton = document.getElementById('start-chat');
-      const calloutButton = document.getElementById('callout');
-
-      // Toggle chat visibility
-      chatHeader.addEventListener('click', () => {
-        chatContainer.classList.toggle('show');
-      });
-
-      // Callout button click handler
-      calloutButton.addEventListener('click', () => {
-        chatContainer.classList.toggle('show');
-      });
-
-      // Function to display messages
-      function displayMessage(message, sender) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${sender}`;
-        messageDiv.textContent = message;
-        chatMessages.appendChild(messageDiv);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-      }
-
-      // Function to send a message
-      function sendMessage() {
-        const message = chatInput.value.trim();
-        if (!message) return;
-
-        const userId = localStorage.getItem('userId');
-        if (!userId) {
-          console.error('User ID not found in local storage.');
-          return;
-        }
-
-        displayMessage(message, 'user');
-
-        // Send message to the server
-        socket.emit('message', { message, from: 'user', userId });
-
-        // Clear the input
-        chatInput.value = '';
-      }
-
-      chatSend.addEventListener('click', sendMessage);
-
-      chatInput.addEventListener('keypress', (event) => {
-        if (event.key === 'Enter') {
-          event.preventDefault();
-          sendMessage();
-        }
-      });
-
-      // Show pre-chat form if no user data exists
-      function showPreChatForm() {
-        welcomeScreen.style.display = 'none';
-        preChatForm.style.display = 'flex';
-      }
-
-      // Check if user data is stored in localStorage
-      const storedUserName = localStorage.getItem('userName');
-      const storedUserEmail = localStorage.getItem('userEmail');
-      const storedUserId = localStorage.getItem('userId');
-
-      // If user data is found in localStorage, skip the form and start the chat
-      startChatButton.addEventListener('click', () => {
-        if (storedUserName && storedUserEmail && storedUserId) {
-          // Load previous messages
-          preChatForm.style.display = 'none';
-          welcomeScreen.style.display = 'none';
-          chatInputContainer.style.display = 'flex';
-          loadPreviousMessages(storedUserId);
-        } else {
-          // If no user data, show the pre-chat form
-          showPreChatForm();
-        }
-      });
-
-      // Handle pre-chat form submission
-      preChatForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-
-        const userName = document.getElementById('user-name').value;
-        const userEmail = document.getElementById('user-email').value;
-
-        // Store user data in local storage
-        localStorage.setItem('userName', userName);
-        localStorage.setItem('userEmail', userEmail);
-
-        // Save user information to Supabase
-        const { data: profile, error } = await supabase
-          .from('chatusers')
-          .insert({ name: userName, email: userEmail })
-          .select();
-
-        if (error) {
-          console.error('Error saving user information:', error);
-          return;
-        }
-
-        const userId = profile[0].id;
-        localStorage.setItem('userId', userId);
-
-        preChatForm.style.display = 'none';
-        chatInputContainer.style.display = 'flex';
-
-        loadPreviousMessages(userId);
-      });
-
-      // Function to load previous messages
-      async function loadPreviousMessages(userId) {
-        const { data: messages, error } = await supabase
-          .from('messages')
-          .select('*')
-          .eq('user_id', userId)
-          .order('created_at', { ascending: true });
-
-        if (error) {
-          console.error('Error loading messages:', error);
-          return;
-        }
-
-        messages.forEach((msg) => {
-          displayMessage(msg.message, msg.sender === 'user' ? 'user' : 'agent');
-        });
-      }
-
-      // Load previous messages if the user has already chatted
-      if (storedUserId) {
-        loadPreviousMessages(storedUserId);
-      }
-    });
-
-  // Initialize the chat interface when the document is ready
-  document.addEventListener('DOMContentLoaded', initializeChat);
-)();
+  // Initialize chat when the page loads
+  window.addEventListener('load', initializeChat);
+})();
